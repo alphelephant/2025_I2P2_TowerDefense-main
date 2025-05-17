@@ -17,6 +17,7 @@ namespace Engine {
         explicit IScene() = default;
 
     public:
+        int score = 0;
         /// <summary>
         /// Copy constructor is deleted, no copying allowed.
         /// </summary>

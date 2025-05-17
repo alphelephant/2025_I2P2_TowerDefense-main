@@ -154,6 +154,7 @@ void PlayScene::Update(float deltaTime) {
                 delete UIGroup;
                 delete imgTarget;*/
                 // Win.
+                score = money/100 + lives * 10;
                 Engine::GameEngine::GetInstance().ChangeScene("win");
                 return;
             }

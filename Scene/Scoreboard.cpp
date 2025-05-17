@@ -6,6 +6,7 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <algorithm>
 
 #include "Engine/AudioHelper.hpp"
 #include "Engine/GameEngine.hpp"
@@ -26,12 +27,13 @@ void Scoreboard::Initialize() {
     int halfW = w / 2;
     int halfH = h / 2;
     for (int i = 0; i < 6; i++) {
-        Engine::Label* itemLabel = new Engine::Label("", "pirulen.ttf", 36, 
-                                                    halfW, halfH - 120 + i * 60, 255, 10, 255, 255, 0.5, 0.5);
+        Engine::Label* itemLabel = new Engine::Label("", "pirulen.ttf", 36, halfW, halfH - 120 + i * 60, 255, 10, 255, 255, 0.5, 0.5);
         AddNewObject(itemLabel);
         scoreLabels.push_back(itemLabel);
     }
+
     drawscore();
+
     AddNewObject(new Engine::Label("Score Board", "pirulen.ttf", 60, halfW, halfH / 3 + 50, 100, 255, 255, 255, 0.5, 0.5));
 
     Engine::ImageButton *btn;
@@ -74,7 +76,11 @@ void Scoreboard::ReadScore() {
             scorebs.push_back({name, score});
         }
     }
-    file.close();    
+    file.close();   
+    // Sort the scores in descending order
+    std::sort(scorebs.begin(), scorebs.end(), [](const std::pair<std::string, int>& a, const std::pair<std::string, int>& b) {
+        return a.second > b.second; // Sort by score in descending order
+    }); 
 }
 void Scoreboard::drawscore() {
 
@@ -95,7 +101,7 @@ void Scoreboard::drawscore() {
             
             // 確保對齊 (可以用空格做簡單對齊，或使用固定寬度格式)
             std::string formattedText = rankText + " " + nameText + " " + scoreText;            
-            scoreLabels[i]->Text = formattedText; // i+1 是因為索引0是表頭
+            scoreLabels[i]->Text = formattedText; 
         } else {
             // 沒有資料，清空文字
             scoreLabels[i]->Text = "";
@@ -104,21 +110,14 @@ void Scoreboard::drawscore() {
 }
 void Scoreboard::PrevPageOnClick() {
     if (page > 0) {
-        page--; // 減少頁數
-        //ClearScoreLabels(); // 清除當前的分數顯示
-        drawscore(); // 重新繪製分數
+        page--; 
+        drawscore();
     }
 }
 void Scoreboard::NextPageOnClick() {
-    if ((page + 1) * 6 < scorebs.size() + 6) { // 確保不超過總頁數
-        page++; // 增加頁數
-        //ClearScoreLabels(); // 清除當前的分數顯示
-        drawscore(); // 重新繪製分數
+    if ((page + 1) * 6 < scorebs.size()) { 
+        page++; 
+        drawscore(); 
     }
 }
-/*void Scoreboard::ClearScoreLabels() {
-    for (auto* label : scorebs) {
-            RemoveObject(label);
-        } 
-    scorebs.clear();
-}*/
+
