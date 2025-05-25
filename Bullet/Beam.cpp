@@ -5,15 +5,15 @@
 #include "Enemy/Enemy.hpp"
 #include "Engine/Group.hpp"
 #include "Engine/Point.hpp"
-#include "LaserBullet.hpp"
+#include "Beam.hpp"
 #include "Scene/PlayScene.hpp"
 #include "UI/Animation/DirtyEffect.hpp"
 
 class Turret;
 
-LaserBullet::LaserBullet(Engine::Point position, Engine::Point forwardDirection, float rotation, Turret *parent) : Bullet("play/bullet-2.png", 800, 5, position, forwardDirection, rotation - ALLEGRO_PI / 2, parent) {
+Beam::Beam(Engine::Point position, Engine::Point forwardDirection, float rotation, Turret *parent) : Bullet("play/laserbeam.png", 0, 200, position, forwardDirection, rotation - ALLEGRO_PI / 2, parent) {
 }
-void LaserBullet::OnExplode(Enemy *enemy) {
+void Beam::OnExplode(Enemy *enemy) {
     std::random_device dev;
     std::mt19937 rng(dev());
     std::uniform_int_distribution<std::mt19937::result_type> dist(2, 10);

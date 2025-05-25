@@ -5,7 +5,7 @@
 #include <memory>
 #include <utility>
 #include <vector>
-
+#include "Turret/LaserSource.hpp"
 #include "Engine/IScene.hpp"
 #include "Engine/Point.hpp"
 
@@ -19,6 +19,7 @@ namespace Engine {
 
 class PlayScene final : public Engine::IScene {
 private:
+    LaserSource* lastPlacedLaserSource = nullptr; 
     enum TileType {
         TILE_DIRT,
         TILE_FLOOR,

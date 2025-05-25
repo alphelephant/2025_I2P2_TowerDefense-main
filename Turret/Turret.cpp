@@ -33,7 +33,7 @@ void Turret::Update(float deltaTime) {
             lockedTurretIterator = std::list<Turret *>::iterator();
         }
     }
-    if (!Target) {
+    if (!Target ) {
         // Lock first seen target.
         // Can be improved by Spatial Hash, Quad Tree, ...
         // However simply loop through all enemies is enough for this program.
@@ -56,13 +56,16 @@ void Turret::Update(float deltaTime) {
         if (cosTheta > 1) cosTheta = 1;
         else if (cosTheta < -1) cosTheta = -1;
         float radian = acos(cosTheta);
-        Engine::Point rotation;
-        if (abs(radian) <= maxRotateRadian)
-            rotation = targetRotation;
-        else
-            rotation = ((abs(radian) - maxRotateRadian) * originRotation + maxRotateRadian * targetRotation) / radian;
-        // Add 90 degrees (PI/2 radian), since we assume the image is oriented upward.
-        Rotation = atan2(rotation.y, rotation.x) + ALLEGRO_PI / 2;
+        if(!Locked) {
+            Engine::Point rotation;
+            if (abs(radian) <= maxRotateRadian)
+                rotation = targetRotation;
+            else
+                rotation = ((abs(radian) - maxRotateRadian) * originRotation + maxRotateRadian * targetRotation) / radian;
+            // Add 90 degrees (PI/2 radian), since we assume the image is oriented upward.
+            Rotation = atan2(rotation.y, rotation.x) + ALLEGRO_PI / 2;
+        }
+
         // Shoot reload.
         reload -= deltaTime;
         if (reload <= 0) {

@@ -23,6 +23,7 @@ protected:
 
 public:
     bool Enabled = true;
+    bool Locked = false;
     bool Preview = false;
     Enemy *Target = nullptr;
     Turret(std::string imgBase, std::string imgTurret, float x, float y, float radius, int price, float coolDown);

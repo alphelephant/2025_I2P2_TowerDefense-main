@@ -18,6 +18,7 @@
 #include "Engine/Resources.hpp"
 #include "PlayScene.hpp"
 #include "Turret/LaserTurret.hpp"
+#include "Turret/LaserSource.hpp"
 #include "Turret/MachineGunTurret.hpp"
 #include "Turret/TurretButton.hpp"
 #include "UI/Animation/DirtyEffect.hpp"
@@ -216,6 +217,10 @@ void PlayScene::OnMouseDown(int button, int mx, int my) {
         preview = nullptr;
     }
     IScene::OnMouseDown(button, mx, my);
+    if (lastPlacedLaserSource && lastPlacedLaserSource->Adjustmode) {
+        lastPlacedLaserSource->Adjustmode = false; 
+        lastPlacedLaserSource = nullptr; 
+    }
 }
 void PlayScene::OnMouseMove(int mx, int my) {
     IScene::OnMouseMove(mx, my);
@@ -228,6 +233,17 @@ void PlayScene::OnMouseMove(int mx, int my) {
     imgTarget->Visible = true;
     imgTarget->Position.x = x * BlockSize;
     imgTarget->Position.y = y * BlockSize;
+
+    if (lastPlacedLaserSource && lastPlacedLaserSource->Adjustmode) {
+        Engine::Point mousePos = Engine::GameEngine::GetInstance().GetMousePosition();
+        float distance = (mousePos - lastPlacedLaserSource->Position).Magnitude();
+        if (distance > 30) { // 超出範圍，確定方向
+            lastPlacedLaserSource->Adjustmode = false;
+        } else {
+            lastPlacedLaserSource->towerdirection = atan2(mousePos.y - lastPlacedLaserSource->Position.y, mousePos.x - lastPlacedLaserSource->Position.x);
+            lastPlacedLaserSource->Rotation = lastPlacedLaserSource->towerdirection;
+        }
+    }
 }
 void PlayScene::OnMouseUp(int button, int mx, int my) {
     IScene::OnMouseUp(button, mx, my);
@@ -257,6 +273,13 @@ void PlayScene::OnMouseUp(int button, int mx, int my) {
             preview->Enabled = true;
             preview->Preview = false;
             preview->Tint = al_map_rgba(255, 255, 255, 255);
+            //laserscource tower
+            LaserSource* laserSource = dynamic_cast<LaserSource*>(preview);
+            if (laserSource) {
+                laserSource->Adjustmode = true;
+                lastPlacedLaserSource = laserSource;
+            }
+
             TowerGroup->AddNewObject(preview);
             // To keep responding when paused.
             preview->Update(0);
@@ -394,6 +417,12 @@ void PlayScene::ConstructUI() {
                            Engine::Sprite("play/turret-2.png", 1370, 136 - 8, 0, 0, 0, 0), 1370, 136, LaserTurret::Price);
     btn->SetOnClickCallback(std::bind(&PlayScene::UIBtnClicked, this, 1));
     UIGroup->AddNewControlObject(btn);
+    // Button 3
+    btn = new TurretButton("play/floor.png", "play/dirt.png",
+                        Engine::Sprite("play/tower-base.png", 1446, 136, 0, 0, 0, 0),
+                        Engine::Sprite("play/turret-7.png", 1446, 136 - 8, 0, 0, 0, 0), 1446, 136, LaserSource::Price);
+    btn->SetOnClickCallback(std::bind(&PlayScene::UIBtnClicked, this, 2)); // 使用 ID 2 表示 LaserSource
+    UIGroup->AddNewControlObject(btn);
 
     int w = Engine::GameEngine::GetInstance().GetScreenSize().x;
     int h = Engine::GameEngine::GetInstance().GetScreenSize().y;
@@ -410,6 +439,8 @@ void PlayScene::UIBtnClicked(int id) {
         preview = new MachineGunTurret(0, 0);
     else if (id == 1 && money >= LaserTurret::Price)
         preview = new LaserTurret(0, 0);
+    else if (id == 2 && money >= LaserSource::Price) // LaserSource 
+        preview = new LaserSource(0, 0, 0);
     if (!preview)
         return;
     preview->Position = Engine::GameEngine::GetInstance().GetMousePosition();
