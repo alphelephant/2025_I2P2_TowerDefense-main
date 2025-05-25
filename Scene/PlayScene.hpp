@@ -27,7 +27,10 @@ private:
     };
     ALLEGRO_SAMPLE_ID bgmId;
     std::shared_ptr<ALLEGRO_SAMPLE_INSTANCE> deathBGMInstance;
-
+    //for shovel mode
+    bool shovelMode = false;
+    Engine::Sprite* shovelPreview = nullptr;  // Shovel 的預覽圖像
+    Turret* selectedTurret = nullptr;
 protected:
     int lives;
     int money;
@@ -79,6 +82,7 @@ public:
     void ReadMap();
     void ReadEnemyWave();
     void ConstructUI();
+    void SetShovelMode(bool enabled);
     void UIBtnClicked(int id);
     bool CheckSpaceValid(int x, int y);
     std::vector<std::vector<int>> CalculateBFSDistance();

@@ -21,6 +21,7 @@
 #include "Turret/LaserSource.hpp"
 #include "Turret/MachineGunTurret.hpp"
 #include "Turret/TurretButton.hpp"
+#include "Turret/Shovel.hpp"
 #include "UI/Animation/DirtyEffect.hpp"
 #include "UI/Animation/Plane.hpp"
 #include "UI/Component/Label.hpp"
@@ -193,6 +194,12 @@ void PlayScene::Update(float deltaTime) {
         // To keep responding when paused.
         preview->Update(deltaTime);
     }
+    if (shovelMode && shovelPreview) {
+        // Update shovel preview position.
+        shovelPreview->Position = Engine::GameEngine::GetInstance().GetMousePosition();
+        // To keep responding when paused.
+        shovelPreview->Update(deltaTime);
+    }
 }
 void PlayScene::Draw() const {
     IScene::Draw();
@@ -216,11 +223,27 @@ void PlayScene::OnMouseDown(int button, int mx, int my) {
         UIGroup->RemoveObject(preview->GetObjectIterator());
         preview = nullptr;
     }
+    if ((button & 1) && !imgTarget->Visible && shovelMode && !shovelPreview) {
+        SetShovelMode(false);
+    }
     IScene::OnMouseDown(button, mx, my);
     if (lastPlacedLaserSource && lastPlacedLaserSource->Adjustmode) {
         lastPlacedLaserSource->Adjustmode = false; 
         lastPlacedLaserSource = nullptr; 
     }
+    if (shovelMode) {
+        // 檢查是否點擊了塔
+        for (auto& obj : TowerGroup->GetObjects()) {
+            Turret* turret = dynamic_cast<Turret*>(obj);
+            Engine::Point mousePos = Engine::GameEngine::GetInstance().GetMousePosition();
+            if (turret&&(mousePos.x >= turret->Position.x - BlockSize / 2 && mousePos.x <= turret->Position.x + BlockSize / 2) &&
+                (mousePos.y >= turret->Position.y - BlockSize / 2 && mousePos.y <= turret->Position.y + BlockSize / 2)) {
+                    selectedTurret = turret;  // 設置選中的塔
+                    return;
+            }        
+        } 
+    }
+    
 }
 void PlayScene::OnMouseMove(int mx, int my) {
     IScene::OnMouseMove(mx, my);
@@ -244,9 +267,19 @@ void PlayScene::OnMouseMove(int mx, int my) {
             lastPlacedLaserSource->Rotation = lastPlacedLaserSource->towerdirection;
         }
     }
+
+
 }
 void PlayScene::OnMouseUp(int button, int mx, int my) {
     IScene::OnMouseUp(button, mx, my);
+    if ((button & 1)&&shovelMode && selectedTurret) {
+        // 移除塔並返還金錢
+        EarnMoney(selectedTurret->GetPrice() / 2);  // 返還一半金額
+        TowerGroup->RemoveObject(selectedTurret->GetObjectIterator());
+        selectedTurret = nullptr;  // 清空選中的塔
+        SetShovelMode(false);  // 退出 Shovel 模式
+    }
+
     if (!imgTarget->Visible)
         return;
     const int x = mx / BlockSize;
@@ -290,6 +323,7 @@ void PlayScene::OnMouseUp(int button, int mx, int my) {
             OnMouseMove(mx, my);
         }
     }
+
 }
 void PlayScene::OnKeyDown(int keyCode) {
     IScene::OnKeyDown(keyCode);
@@ -423,6 +457,14 @@ void PlayScene::ConstructUI() {
                         Engine::Sprite("play/turret-7.png", 1446, 136 - 8, 0, 0, 0, 0), 1446, 136, LaserSource::Price);
     btn->SetOnClickCallback(std::bind(&PlayScene::UIBtnClicked, this, 2)); // 使用 ID 2 表示 LaserSource
     UIGroup->AddNewControlObject(btn);
+    //Button 4
+    
+    Shovel *shl = new Shovel("play/floor.png", "play/dirt.png",
+                           Engine::Sprite("play/shovel-base.png", 1522, 136, 50, 50, -0.14, -0.14),
+                           Engine::Sprite("play/shovel.png", 1522, 136 - 8, 0, 0, 0, 0), 1522, 136,0);
+    shl->SetOnClickCallback(std::bind(&PlayScene::UIBtnClicked, this, 3));
+    UIGroup->AddNewControlObject(shl);
+    
 
     int w = Engine::GameEngine::GetInstance().GetScreenSize().x;
     int h = Engine::GameEngine::GetInstance().GetScreenSize().y;
@@ -435,12 +477,21 @@ void PlayScene::ConstructUI() {
 void PlayScene::UIBtnClicked(int id) {
     if (preview)
         UIGroup->RemoveObject(preview->GetObjectIterator());
+    if (shovelMode) {
+        // Exit Shovel mode if shovel button is clicked.
+        SetShovelMode(false);
+        //UIGroup->RemoveObject(shovelPreview->GetObjectIterator());
+        return;
+    }
     if (id == 0 && money >= MachineGunTurret::Price)
         preview = new MachineGunTurret(0, 0);
     else if (id == 1 && money >= LaserTurret::Price)
         preview = new LaserTurret(0, 0);
     else if (id == 2 && money >= LaserSource::Price) // LaserSource 
         preview = new LaserSource(0, 0, 0);
+    else if(id == 3 && money >= 10){
+        SetShovelMode(true);
+    }
     if (!preview)
         return;
     preview->Position = Engine::GameEngine::GetInstance().GetMousePosition();
@@ -506,4 +557,22 @@ std::vector<std::vector<int>> PlayScene::CalculateBFSDistance() {
         
     }
     return map;
+}
+void PlayScene::SetShovelMode(bool enabled) {
+    shovelMode = enabled;
+    selectedTurret = nullptr;
+
+    if (shovelMode) {
+        // 顯示 Shovel 的預覽圖像
+        shovelPreview = new Engine::Sprite("play/shovel.png", 0, 0, 64, 64);
+        shovelPreview->Visible = true;
+        shovelPreview->Tint = al_map_rgba(255, 255, 255, 255); 
+        UIGroup->AddNewObject(shovelPreview);
+        Engine::Point mousePos = Engine::GameEngine::GetInstance().GetMousePosition();
+        shovelPreview->Position = mousePos;
+    } else if (shovelPreview) {
+        // 移除 Shovel 的預覽圖像
+        UIGroup->RemoveObject(shovelPreview->GetObjectIterator());
+        shovelPreview = nullptr;
+    }
 }
