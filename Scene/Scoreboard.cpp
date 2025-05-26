@@ -19,9 +19,11 @@
 #include "UI/Component/Slider.hpp"
 
 
-void Scoreboard::Initialize() {
+void Scoreboard::Initialize() {         
+    scoreLabels.clear();
+    page = 0;
     ReadScore();
-    
+
     int w = Engine::GameEngine::GetInstance().GetScreenSize().x;
     int h = Engine::GameEngine::GetInstance().GetScreenSize().y;
     int halfW = w / 2;
@@ -57,6 +59,8 @@ void Scoreboard::Terminate() {
    /* AudioHelper::StopSample(bgmInstance);
     bgmInstance = std::shared_ptr<ALLEGRO_SAMPLE_INSTANCE>();
     IScene::Terminate();*/
+    IScene::Terminate();
+
 }
 void Scoreboard::BackOnClick(int stage) {
     Engine::GameEngine::GetInstance().ChangeScene("stage-select");

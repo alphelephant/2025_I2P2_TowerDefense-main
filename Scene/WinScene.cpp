@@ -20,6 +20,9 @@ void WinScene::Initialize() {
     int h = Engine::GameEngine::GetInstance().GetScreenSize().y;
     int halfW = w / 2;
     int halfH = h / 2;
+    auto play = dynamic_cast<PlayScene*>(
+    Engine::GameEngine::GetInstance().GetScene("play"));    
+    if (play) score = play->GetScore();
     AddNewObject(new Engine::Image("win/benjamin-sad.png", halfW, halfH-80, 350, 350, 0.5, 0.5));
     AddNewObject(new Engine::Label("You Win!", "pirulen.ttf", 48, halfW, halfH / 4 - 10, 255, 255, 255, 255, 0.5, 0.5));
     itemLabel = new Engine::Label("", "pirulen.ttf", 36, halfW, halfH * 11/8 + 25 , 255, 10, 255, 255, 0.5, 0.5);
@@ -64,14 +67,21 @@ void WinScene::OnKeyDown(int keyCode) {
             name += *it;
         }
         std::ofstream file("Resource/scoreboard.txt", std::ios::app);
+        std::ofstream file2("../Resource/scoreboard.txt", std::ios::app);
         if (!file.is_open()) {
             itemLabel->Text = "Failed to save name!";
             return;
         }
+        if (!file2.is_open()) {
+            itemLabel->Text = "Failed to open f2!";
+        }
         file << name << " " << score << "\n";
-        itemLabel->Text = "name saved";
+        file2 << name << " " << score << "\n";
+        itemLabel->Text = name + " " + std::to_string(score);
         file.flush();//有點問題的東西 
+        file2.flush();
         file.close();
+        file2.close();
         namesaved = true;
     }
     else{
@@ -98,7 +108,7 @@ void WinScene::OnKeyDown(int keyCode) {
             }
         }
 
-        std::string name;
+        std::string name = "";
         for (auto it = nameList.begin(); it != nameList.end(); ++it) {
             name += *it;
         }

@@ -71,6 +71,7 @@ void Turret::Update(float deltaTime) {
         if (reload <= 0) {
             // shoot.
             reload = coolDown;
+            BeamCoolDown= (!BeamCoolDown);
             CreateBullet();
         }
     }

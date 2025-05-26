@@ -8,7 +8,6 @@
 #include "Turret/LaserSource.hpp"
 #include "Engine/IScene.hpp"
 #include "Engine/Point.hpp"
-
 class Turret;
 namespace Engine {
     class Group;
@@ -20,11 +19,7 @@ namespace Engine {
 class PlayScene final : public Engine::IScene {
 private:
     LaserSource* lastPlacedLaserSource = nullptr; 
-    enum TileType {
-        TILE_DIRT,
-        TILE_FLOOR,
-        TILE_OCCUPIED,
-    };
+
     ALLEGRO_SAMPLE_ID bgmId;
     std::shared_ptr<ALLEGRO_SAMPLE_INSTANCE> deathBGMInstance;
     //for shovel mode
@@ -35,6 +30,8 @@ protected:
     int lives;
     int money;
     int SpeedMult;
+    int score = 0;
+
 
 public:
     static bool DebugMode;
@@ -49,6 +46,11 @@ public:
     float ticks;
     float deathCountDown;
     // Map tiles.
+    enum TileType {
+        TILE_DIRT,
+        TILE_FLOOR,
+        TILE_OCCUPIED,
+    };
     Group *TileMapGroup;
     Group *GroundEffectGroup;
     Group *DebugIndicatorGroup;
@@ -66,6 +68,7 @@ public:
     std::vector<std::vector<int>> mapDistance;
     std::list<std::pair<int, float>> enemyWaveData;
     std::list<int> keyStrokes;
+    int GetScore() const { return score; }
     static Engine::Point GetClientSize();
     explicit PlayScene() = default;
     void Initialize() override;

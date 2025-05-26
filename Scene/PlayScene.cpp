@@ -10,6 +10,7 @@
 
 #include "Enemy/Enemy.hpp"
 #include "Enemy/SoldierEnemy.hpp"
+#include "Enemy/SuicideEnemy.hpp"
 #include "Enemy/TankEnemy.hpp"
 #include "Engine/AudioHelper.hpp"
 #include "Engine/GameEngine.hpp"
@@ -25,6 +26,7 @@
 #include "UI/Animation/DirtyEffect.hpp"
 #include "UI/Animation/Plane.hpp"
 #include "UI/Component/Label.hpp"
+#include "Bullet/Beam.hpp"
 
 // TODO HACKATHON-4 (1/3): Trace how the game handles keyboard input.
 // TODO HACKATHON-4 (2/3): Find the cheat code sequence in this file.
@@ -182,6 +184,9 @@ void PlayScene::Update(float deltaTime) {
             case 3:
                 EnemyGroup->AddNewObject(enemy = new TankEnemy(SpawnCoordinate.x, SpawnCoordinate.y));
                 break;
+            case 4:
+                EnemyGroup->AddNewObject(enemy = new SuicideEnemy(SpawnCoordinate.x, SpawnCoordinate.y));
+                break;
             default:
                 continue;
         }
@@ -271,10 +276,19 @@ void PlayScene::OnMouseMove(int mx, int my) {
 
 }
 void PlayScene::OnMouseUp(int button, int mx, int my) {
+    const int x = mx / BlockSize;
+    const int y = my / BlockSize;
     IScene::OnMouseUp(button, mx, my);
     if ((button & 1)&&shovelMode && selectedTurret) {
         // 移除塔並返還金錢
-        EarnMoney(selectedTurret->GetPrice() / 2);  // 返還一半金額
+        mapState[y][x] = TILE_DIRT;  // 恢復地面狀態
+        EarnMoney(selectedTurret->GetPrice()/3);  // 返還金額
+        for (auto &obj : BulletGroup->GetObjects()) {
+            auto beam = dynamic_cast<Beam*>(obj);
+            if (beam && beam->GetParent() == selectedTurret ) {
+                BulletGroup->RemoveObject(beam->GetObjectIterator());
+            }
+        }
         TowerGroup->RemoveObject(selectedTurret->GetObjectIterator());
         selectedTurret = nullptr;  // 清空選中的塔
         SetShovelMode(false);  // 退出 Shovel 模式
@@ -282,8 +296,6 @@ void PlayScene::OnMouseUp(int button, int mx, int my) {
 
     if (!imgTarget->Visible)
         return;
-    const int x = mx / BlockSize;
-    const int y = my / BlockSize;
     if (button & 1) {
         if (mapState[y][x] != TILE_OCCUPIED) {
             if (!preview)

@@ -19,4 +19,16 @@ public:
     ExplosionEffect(float x, float y);
     void Update(float deltaTime) override;
 };
+
+class ShockwaveEffect : public Engine::Sprite {
+protected:
+    PlayScene *getPlayScene();
+    float   timeTicks  = 0.0;
+    float   timeSpan   = 0.4;    
+    float   maxRadius;            
+    float   startScale;            
+public:
+    ShockwaveEffect(float x, float y, float radius);
+    void Update(float deltaTime) override;
+};
 #endif   // EXPLOSIONEFFECT_HPP

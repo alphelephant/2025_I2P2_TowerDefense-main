@@ -10,12 +10,22 @@
 #include "LaserSource.hpp"
 #include "Scene/PlayScene.hpp"
 
-const int LaserSource::Price = 1;
-LaserSource::LaserSource(float x, float y, float rotation) : Turret("play/tower-base.png", "play/turret-7.png", x, y, 500, Price, 2) {
+const int LaserSource::Price = 500;
+LaserSource::LaserSource(float x, float y, float rotation) : Turret("play/tower-base.png", "play/turret-7.png", x, y, 450, Price, 2.0f) {
     Anchor.y += 8.0f / GetBitmapHeight();
     Rotation = rotation;
 }
 void LaserSource::CreateBullet() {
+    auto scene = getPlayScene();
+    
+    /*for (auto &obj : scene->BulletGroup->GetObjects()) {
+        auto beam = dynamic_cast<Beam*>(obj);
+        if (beam && beam->GetParent() == this) {
+            scene->BulletGroup->RemoveObject(beam->GetObjectIterator());
+            break;
+        }
+    }
+    if (BeamCoolDown) return;*/
     Engine::Point diff = Engine::Point(cos(towerdirection - ALLEGRO_PI / 2), sin(towerdirection - ALLEGRO_PI / 2));
     float rotation = atan2(diff.y, diff.x);
     Engine::Point normalized = diff.Normalize();
